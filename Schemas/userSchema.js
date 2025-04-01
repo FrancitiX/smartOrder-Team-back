@@ -14,7 +14,7 @@ const userSchema = new Schema(
     cellphone: Number,
     salt: String,
     password: String,
-    rol: String,
+    rol: Number,
     restaurants: [ String ],
   },
   {

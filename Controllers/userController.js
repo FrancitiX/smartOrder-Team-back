@@ -19,40 +19,19 @@ const {
   close_All_Sessions,
 } = require("./TokenController");
 
-const Salt = (username) => {
-  if (!username || username.length < 2) {
-    throw new Error("El nombre de usuario debe tener al menos 2 caracteres.");
-  }
-
-  const firstLetter = username[0].toLowerCase();
-  const lastLetter = username[username.length - 1].toLowerCase();
-
-  const randomPart = crypto.randomBytes(8).toString("hex");
-
-  return `${firstLetter}${lastLetter}${randomPart}`;
-};
-
-const usernameCreate = (name, number) => {
-  if (!name || name.length < 2) {
-    throw new Error("El nombre de usuario debe tener al menos 2 caracteres.");
-  }
-
-  const firstLetter = name[0].toUpperCase() + name[1].toUpperCase();
-  const lastLetter = name[name.length - 1].toUpperCase();
-
-  return `${firstLetter}${number}${lastLetter}`;
-};
-
 const registerUser = async (req, res) => {
-  const { name, cellphone, pass, email, rol, department, tower } = req.body;
+  const { name, cellphone, password, email, rol } = req.body;
   console.log("Registro: ", name.name);
 
   try {
-    const salt = Salt(name.name);
+    const salt = await bcrypt.genSalt(12);
     const pepper = process.env.PEPPER;
-    const enPassword = await bcrypt.hash(pepper + pass + salt, 12);
+    // const enPassword = await bcrypt.hash(pepper + password + salt, 12);
+    const enPassword = await bcrypt.hash(pepper + password + salt, 12);
     const oldEmail = await User.findOne({ email: email });
-    const user = usernameCreate(name.name, cellphone);
+
+    console.log("Contraseña registrada: " + pepper + password + salt);
+    
 
     if (oldEmail) {
       res.status(400).json({
@@ -61,25 +40,21 @@ const registerUser = async (req, res) => {
       });
       console.log("El correo ya está registrado!");
     } else {
-      console.log(user);
-
       await User.create({
         name: {
           name: name.name,
           paternal_surname: name.paternal_surname,
           maternal_surname: name.maternal_surname,
         },
-        username: user,
         email,
         cellphone: cellphone,
         salt: salt,
         password: enPassword,
-        rol,
-        department,
-        tower,
+        rol: rol,
+        restaurants: [],
       });
       await userImage.create({
-        username: user,
+        email: email,
         image: "",
         bgimage: "",
       });
@@ -97,58 +72,66 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password, remember } = req.body;
   const ip = req.connection.remoteAddress;
-  console.log("IP del cliente:", ip);
-  console.log(remember);
+  // console.log("IP del cliente:", ip);
+  // console.log(remember);
   console.log("Login: " + email, password);
-  // try {
-  //   const user = await User.findOne({
-  //     cellphone: number,
-  //   });
+  try {
+    const user = await User.findOne({
+      email: email,
+    });
 
-  //   if (!user) {
-  //     return res
-  //       .status(404)
-  //       .json({ status: "error", data: "Usuario no registrado" });
-  //   }
-  //   const { salt } = user;
-  //   const pepper = process.env.PEPPER;
-  //   const passwordComplete = pepper + password + salt;
-  //   const isPasswordValid = await bcrypt.compare(
-  //     passwordComplete,
-  //     user.password
-  //   );
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: "error", data: "Usuario no registrado" });
+    }
+    const { salt } = user;
+    const pepper = process.env.PEPPER;
+    // const passwordComplete = pepper + password + salt;
+    const fullPassword = pepper + password + salt;
+    const isPasswordValid = await bcrypt.compare(
+      // pepper + password + salt,
+      fullPassword,
+      user.password
+    );
 
-  //   if (!isPasswordValid) {
-  //     return res
-  //       .status(401)
-  //       .json({ status: "wrong password", data: "Contraseña incorrecta" });
-  //   }
+    console.log("Contraseña login: " + fullPassword);
 
-  //   // Generar token JWT
-  //   const payload = { cellphone: user.cellphone, username: user.username };
-  //   const token = jwt.sign(payload, process.env.JWT_SECRET, {
-  //     expiresIn: "1h",
-  //   });
-  //   // if (!remember) {
-  //   //   const token = jwt.sign(payload, process.env.JWT_SECRET, {
-  //   //     expiresIn: "1h",
-  //   //   });
-  //   // } else {
-  //   //   const token = jwt.sign(payload, process.env.JWT_SECRET, {});
-  //   //   newSession(user.username, token, session);
-  //   // }
+    if (!isPasswordValid) {
+      return res
+        .status(401)
+        .json({ status: "wrong password", data: "Contraseña incorrecta" });
+    }
 
-  //   return res.status(200).json({
-  //     status: "ok",
-  //     rol: user.rol,
-  //     token: token,
-  //   });
-  // } catch (error) {
-  //   console.error("Error en login:", error);
-  //   return res
-  //     .status(500)
-  //     .json({ status: "error", data: "Error interno del servidor" });
-  // }
+    // Generar token JWT
+    let token;
+    const payload = { email: user.email, username: user.name };
+    // const token = jwt.sign(payload, process.env.JWT_SECRET, {
+    //   expiresIn: "1h",
+    // });
+    if (!remember) {
+      token = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: "1h",
+      });
+    } else {
+      const session = email + ip;
+      token = jwt.sign(payload, process.env.JWT_SECRET, {});
+      const dbToken = await newSession(email, token, session);
+      console.log("token guardado: " + dbToken);
+      
+    }
+
+    return res.status(200).json({
+      status: "ok",
+      rol: user.rol,
+      token: token,
+    });
+  } catch (error) {
+    console.error("Error en login:", error);
+    return res
+      .status(500)
+      .json({ status: "error", data: "Error interno del servidor" });
+  }
 };
 
 const userData = async (req, res) => {
@@ -158,11 +141,14 @@ const userData = async (req, res) => {
     return res.status(401).json({ error: "Error al iniciar sesion" });
   }
 
+  console.log("data del usuario");
+  
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const { username } = decoded;
+    const { email } = decoded;
 
-    User.findOne({ username: username })
+    User.findOne({ email: email })
       .then((user) => {
         return res.status(200).json({ status: "ok", data: user });
       })

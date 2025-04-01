@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const userImageSchema = new Schema(
   {
-    username: { type: String, unique: true },
+    email: { type: String, unique: true },
     image: String,
     bgImage: { type: String, default: "0"},
     date: { date: String, time: String },

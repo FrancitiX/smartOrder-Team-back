@@ -3,9 +3,9 @@ const Schema = mongoose.Schema;
 
 const tokenSchema = new Schema(
   {
-    user: String,
+    email: String,
     token: String,
-    session: Number,
+    session: String,
     date: { date: String, time: String },
   },
   {
