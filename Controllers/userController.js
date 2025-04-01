@@ -95,60 +95,60 @@ const registerUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-  const { number, password, remember } = req.body;
+  const { email, password, remember } = req.body;
   const ip = req.connection.remoteAddress;
   console.log("IP del cliente:", ip);
   console.log(remember);
-  console.log("Login: ", number);
-  try {
-    const user = await User.findOne({
-      cellphone: number,
-    });
+  console.log("Login: " + email, password);
+  // try {
+  //   const user = await User.findOne({
+  //     cellphone: number,
+  //   });
 
-    if (!user) {
-      return res
-        .status(404)
-        .json({ status: "error", data: "Usuario no registrado" });
-    }
-    const { salt } = user;
-    const pepper = process.env.PEPPER;
-    const passwordComplete = pepper + password + salt;
-    const isPasswordValid = await bcrypt.compare(
-      passwordComplete,
-      user.password
-    );
+  //   if (!user) {
+  //     return res
+  //       .status(404)
+  //       .json({ status: "error", data: "Usuario no registrado" });
+  //   }
+  //   const { salt } = user;
+  //   const pepper = process.env.PEPPER;
+  //   const passwordComplete = pepper + password + salt;
+  //   const isPasswordValid = await bcrypt.compare(
+  //     passwordComplete,
+  //     user.password
+  //   );
 
-    if (!isPasswordValid) {
-      return res
-        .status(401)
-        .json({ status: "wrong password", data: "Contraseña incorrecta" });
-    }
+  //   if (!isPasswordValid) {
+  //     return res
+  //       .status(401)
+  //       .json({ status: "wrong password", data: "Contraseña incorrecta" });
+  //   }
 
-    // Generar token JWT
-    const payload = { cellphone: user.cellphone, username: user.username };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    // if (!remember) {
-    //   const token = jwt.sign(payload, process.env.JWT_SECRET, {
-    //     expiresIn: "1h",
-    //   });
-    // } else {
-    //   const token = jwt.sign(payload, process.env.JWT_SECRET, {});
-    //   newSession(user.username, token, session);
-    // }
+  //   // Generar token JWT
+  //   const payload = { cellphone: user.cellphone, username: user.username };
+  //   const token = jwt.sign(payload, process.env.JWT_SECRET, {
+  //     expiresIn: "1h",
+  //   });
+  //   // if (!remember) {
+  //   //   const token = jwt.sign(payload, process.env.JWT_SECRET, {
+  //   //     expiresIn: "1h",
+  //   //   });
+  //   // } else {
+  //   //   const token = jwt.sign(payload, process.env.JWT_SECRET, {});
+  //   //   newSession(user.username, token, session);
+  //   // }
 
-    return res.status(200).json({
-      status: "ok",
-      rol: user.rol,
-      token: token,
-    });
-  } catch (error) {
-    console.error("Error en login:", error);
-    return res
-      .status(500)
-      .json({ status: "error", data: "Error interno del servidor" });
-  }
+  //   return res.status(200).json({
+  //     status: "ok",
+  //     rol: user.rol,
+  //     token: token,
+  //   });
+  // } catch (error) {
+  //   console.error("Error en login:", error);
+  //   return res
+  //     .status(500)
+  //     .json({ status: "error", data: "Error interno del servidor" });
+  // }
 };
 
 const userData = async (req, res) => {
