@@ -7,6 +7,7 @@ const rolesController = require("../src/api/Role/RolesController");
 const authMiddleware = require("../src/Middleware/authMiddleware");
 
 // Rutas para autenticación de usuarios
+router.post("/newUser", authMiddleware, userController.registerUser);
 router.get("/userData", authMiddleware, userController.userData);
 router.put("/updateUser", authMiddleware, userController.updateUser);
 router.get("/get-All-User", authMiddleware, userController.getAllUsers);

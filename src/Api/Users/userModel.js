@@ -17,7 +17,9 @@ const UserModel = new Schema(
      },
     salt: String,
     password: String,
-    rol: Number,
+    role: Number,
+    favrestaurants: Array,
+    date: { date: String, time: String }
   },
   {
     collection: "users",

@@ -22,7 +22,7 @@ const {
 } = require("../Tokens/TokenController");
 
 const registerUser = async (req, res) => {
-  const { name, cellphone, password, email, rol } = req.body;
+  const { name, cellphone, password, email, role } = req.body;
   console.log("Registro: ", name.name);
 
   try {
@@ -52,8 +52,8 @@ const registerUser = async (req, res) => {
         cellphone: cellphone,
         salt: salt,
         password: enPassword,
-        rol: rol,
-        restaurants: [],
+        role: role,
+        favrestaurants: [],
       });
       await userImage.create({
         email: email,
