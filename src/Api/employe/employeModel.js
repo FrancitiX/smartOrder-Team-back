@@ -1,14 +1,11 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const userSchema = new Schema(
+const employeModel = new Schema(
   {
-    name: {
-      type: {
-        name: String,
-        paternal_surname: String,
-        maternal_surname: String,
-      },
+    role: {
+      type: String,
+      enum: ["admin", "user"],
     },
     email: { type: String, unique: true },
     cellphone: Number,
@@ -22,7 +19,7 @@ const userSchema = new Schema(
   }
 );
 
-userSchema.pre("save", function (next) {
+employeModel.pre("save", function (next) {
   const dateMexico = new Date().toLocaleString("es-MX", {
     timeZone: "America/Mexico_City",
   });
@@ -31,4 +28,4 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-mongoose.model("users", userSchema);
+mongoose.model("user", employeModel);

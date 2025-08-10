@@ -1,0 +1,35 @@
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+
+const restaurantModel = new Schema(
+  {
+    id: String,
+    name: String,
+    description: String,
+    owner: String,
+    contact: {
+      email: String,
+      phone: {
+        countryCode: String,
+        number: String
+      }
+    },
+    password: String,
+    category: Number,
+    foods: [String]
+  },
+  {
+    collection: "restaurants",
+  }
+);
+
+restaurantModel.pre("save", function (next) {
+  const dateMexico = new Date().toLocaleString("es-MX", {
+    timeZone: "America/Mexico_City",
+  });
+  const [datePart, timePart] = dateMexico.split(", ");
+  this.date = { date: datePart, time: timePart };
+  next();
+});
+
+mongoose.model("restaurant", restaurantModel);

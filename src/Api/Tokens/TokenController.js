@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const app = express();
 app.use(express.json());
 
-require("../Schemas/TokenSchema");
+require("./TokenModel");
 const Token = mongoose.model("token");
 
 // Insertar multas

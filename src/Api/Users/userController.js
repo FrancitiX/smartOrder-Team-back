@@ -1,23 +1,25 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
-const app = express();
-app.use(express.json());
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
 require("dotenv").config();
 
-require("./../Schemas/userSchema");
-require("../Schemas/user_imageSchema");
-const User = mongoose.model("users");
-const userImage = mongoose.model("user_image");
+const app = express();
+
+app.use(express.json());
+
+require("./userModel");
+require("../User_Image/user_imageModel");
+const User = mongoose.model("user");
+const userImage = mongoose.model("userImage");
+const Roles = require("../../Enums/Enums");
 
 const {
   newSession,
   getSession,
   closeSession,
   close_All_Sessions,
-} = require("./TokenController");
+} = require("../Tokens/TokenController");
 
 const registerUser = async (req, res) => {
   const { name, cellphone, password, email, rol } = req.body;

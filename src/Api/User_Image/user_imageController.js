@@ -6,12 +6,12 @@ const fs = require("fs");
 const app = express();
 app.use(express.json());
 
-require("./../Schemas/user_imageSchema");
-const User_Image = mongoose.model("user_image");
+require("./user_imageModel");
+const User_Image = mongoose.model("userImage");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Carpeta donde se guardarán las imágenes
+    cb(null, "Storage/Images"); // Carpeta donde se guardarán las imágenes
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
