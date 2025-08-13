@@ -24,6 +24,7 @@ const orderModel = new Schema(
     date: { date: String, time: String },
   },
   {
+    timestamps: true,
     collection: "orders",
   }
 );

@@ -1,0 +1,325 @@
+const express = require("express");
+const mongoose = require("mongoose");
+require("dotenv").config();
+
+const app = express();
+
+app.use(express.json());
+
+require("./foodModel");
+require("../Restaurant/restaurantModel");
+const Food = mongoose.model("food");
+const Restaurant = mongoose.model("restaurant");
+
+// Crear una nueva comida
+const createFood = async (req, res) => {
+    const { name, restaurant, description, price, category, image } = req.body;
+    const user = req.user
+
+    try {
+        const restaurant = await Restaurant.findOne({ id: restaurant, owner: user.email })
+
+        if (!restaurant) {
+            return res.status(404).json({
+                status: "error",
+                data: "Restaurante no encontrado"
+            });
+        }
+
+        // Verificar que el restaurante existe y pertenece al usuario
+        const foodExist = await Food.findOne({
+            name: name,
+            restaurant: restaurant
+        });
+
+        if (foodExist) {
+            return res.status(404).json({
+                status: "error",
+                data: "Ya existe un platillo con este nombre en el restaurante"
+            });
+        }
+
+        const newFood = await Food.create({
+            name,
+            restaurant,
+            description,
+            price,
+            sales: 0,
+            category,
+            image: image || "",
+        });
+
+        res.status(201).json({
+            status: "ok",
+            data: "Platillo creado exitosamente",
+            food: newFood
+        });
+    } catch (error) {
+        console.error("Error al crear platillo:", error);
+        res.status(500).json({
+            status: "error",
+            data: "Error interno del servidor"
+        });
+    }
+};
+
+// Obtener todas las comidas de un restaurante
+const getFoodsByRestaurant = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const foods = await Food.find({ restaurant: id });
+
+        if (!foods || foods.length === 0) {
+            return res.status(404).json({
+                status: "error",
+                data: "No se encontraron comidas para este restaurante"
+            });
+        }
+
+        res.status(200).json({
+            status: "ok",
+            data: foods
+        });
+    } catch (error) {
+        console.error("Error al obtener comidas:", error);
+        res.status(500).json({
+            status: "error",
+            data: "Error interno del servidor"
+        });
+    }
+};
+
+// Obtener una comida específica por ID
+const getFood = async (req, res) => {
+    const name = req.params.food;
+    const restaurant = req.params.id;
+
+    try {
+        const food = await Food.findOne({ name: name, restaurant: restaurant });
+
+        if (!food) {
+            return res.status(404).json({
+                status: "error",
+                data: "Platillo no encontrado"
+            });
+        }
+
+        res.status(200).json({
+            status: "ok",
+            data: food
+        });
+    } catch (error) {
+        console.error("Error al obtener comida:", error);
+        res.status(500).json({
+            status: "error",
+            data: "Error interno del servidor"
+        });
+    }
+};
+
+// Actualizar un platillo
+const updateFood = async (req, res) => {
+    const { name, restaurant, description, price, category, image } = req.body;
+    const user = req.user
+
+    try {
+        const restaurant = await Restaurant.findOne({ id: restaurant, owner: user.email })
+
+        if (!restaurant) {
+            return res.status(404).json({
+                status: "error",
+                data: "Restaurante no encontrado"
+            });
+        }
+
+        const food = await Food.findOne({ name: name, restaurant: restaurant });
+
+        if (!food) {
+            return res.status(404).json({
+                status: "error",
+                data: "Comida no encontrada"
+            });
+        }
+
+        // Verificar si el nuevo nombre ya existe en el restaurante (si se está cambiando)
+        if (name && name !== food.name) {
+            const existingFood = await Food.findOne({
+                name: name,
+                restaurant: restaurant,
+                _id: { $ne: food._id } // Excluir la comida actual
+            });
+
+            if (existingFood) {
+                return res.status(400).json({
+                    status: "error",
+                    data: "Ya existe un platillo con este nombre en el restaurante"
+                });
+            }
+        }
+
+        const updatedFood = await Food.updateOne({ name: name, restaurant: restaurant }, {
+            $set: {
+                name: name || food.name,
+                description: description || food.description,
+                price: price || food.price,
+                category: category || food.category,
+                image: image !== undefined ? image : food.image,
+            }
+        });
+
+        res.status(200).json({
+            status: "ok",
+            data: "Platillo actualizado exitosamente",
+            food: updatedFood
+        });
+    } catch (error) {
+        console.error("Error al actualizar comida:", error);
+        res.status(500).json({
+            status: "error",
+            data: "Error interno del servidor"
+        });
+    }
+};
+
+// Eliminar una comida
+const deleteFood = async (req, res) => {
+    const { name, restaurant } = req.params;
+    const user = req.user
+
+    try {
+        const restaurantExist = await Restaurant.findOne({ id: restaurant, owner: user.email })
+
+        if (!restaurantExist) {
+            return res.status(404).json({
+                status: "error",
+                data: "Restaurante no encontrado"
+            });
+        }
+
+        const food = await Food.findOne({ name: name, restaurant: restaurant });
+
+        if (!food) {
+            return res.status(404).json({
+                status: "error",
+                data: "Platillo no encontrado"
+            });
+        }
+
+        await Food.deleteOne({ name: name, restaurant: restaurant });
+
+        res.status(200).json({
+            status: "ok",
+            data: "Platillo eliminado exitosamente"
+        });
+    } catch (error) {
+        console.error("Error al eliminar comida:", error);
+        res.status(500).json({
+            status: "error",
+            data: "Error interno del servidor"
+        });
+    }
+};
+
+// Obtener comidas por categoría
+const getFoodsByCategory = async (req, res) => {
+    const { restaurant, category } = req.params;
+
+    try {
+        const foods = await Food.find({
+            restaurant: restaurant,
+            category: category
+        });
+
+        if (!foods || foods.length === 0) {
+            return res.status(404).json({
+                status: "error",
+                data: "No se encontraron comidas en esta categoría"
+            });
+        }
+
+        res.status(200).json({
+            status: "ok",
+            data: foods
+        });
+    } catch (error) {
+        console.error("Error al obtener comidas por categoría:", error);
+        res.status(500).json({
+            status: "error",
+            data: "Error interno del servidor"
+        });
+    }
+};
+
+// Actualizar ventas de una comida
+const updateFoodSales = async (req, res) => {
+    const { name, restaurant } = req.params;
+    const { sales } = req.body;
+
+    try {
+        const food = await Food.findOne({ name: name, restaurant: restaurant });
+
+        if (!food) {
+            return res.status(404).json({
+                status: "error",
+                data: "Comida no encontrada"
+            });
+        }
+
+        const updatedFood = await Food.updateOne({ name: name, restaurant: restaurant }, 
+            { $set: { sales: sales } });
+
+        res.status(200).json({
+            status: "ok",
+            data: "Ventas actualizadas exitosamente",
+            food: updatedFood
+        });
+    } catch (error) {
+        console.error("Error al actualizar ventas:", error);
+        res.status(500).json({
+            status: "error",
+            data: "Error interno del servidor"
+        });
+    }
+};
+
+// Buscar comidas por nombre
+const searchFoods = async (req, res) => {
+    const { restaurant, query } = req.params;
+
+    try {
+        const foods = await Food.find({
+            restaurant: restaurant,
+            name: { $regex: query, $options: 'i' } // Búsqueda case-insensitive
+        });
+
+        if (!foods || foods.length === 0) {
+            return res.status(404).json({
+                status: "error",
+                data: "No se encontraron comidas con ese nombre"
+            });
+        }
+
+        res.status(200).json({
+            status: "ok",
+            data: foods
+        });
+    } catch (error) {
+        console.error("Error al buscar comidas:", error);
+        res.status(500).json({
+            status: "error",
+            data: "Error interno del servidor"
+        });
+    }
+};
+
+module.exports = {
+    createFood,
+    getFoodsByRestaurant,
+    getFood,
+    updateFood,
+    deleteFood,
+    getFoodsByCategory,
+    updateFoodSales,
+    searchFoods
+};

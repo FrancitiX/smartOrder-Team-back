@@ -49,10 +49,10 @@ const getSession = async (token, session) => {
 
 const closeSession = async (user, session) => {
   try {
-    const session = await Token.findOne({ user, session });
+    const foundSession = await Token.findOne({ user, session });
 
-    if (session) {
-      await Token.deleteOne({ session });
+    if (foundSession) {
+      await Token.deleteOne({ user, session });
       return true;
     }
 
@@ -69,7 +69,6 @@ const close_All_Sessions = async (user) => {
   try {
     if (user) {
       const close = await Token.deleteMany({ user: user });
-
       return close;
     }
 

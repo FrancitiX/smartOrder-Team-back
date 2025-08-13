@@ -14,11 +14,15 @@ const restaurantModel = new Schema(
         number: String
       }
     },
-    password: String,
     category: Number,
-    foods: [String]
+    foods: [String],
+    date: {
+      date: String,
+      time: String
+    }
   },
   {
+    timestamps: true,
     collection: "restaurants",
   }
 );

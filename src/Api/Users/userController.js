@@ -74,8 +74,11 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password, remember } = req.body;
   const ip = req.connection.remoteAddress;
-  // console.log("IP del cliente:", ip);
-  // console.log(remember);
+
+  const os = require("os");
+  console.log(os.userInfo().username);
+
+  console.log("IP del cliente:", ip);
   console.log("Login: " + email, password);
   try {
     const user = await User.findOne({
@@ -120,7 +123,7 @@ const loginUser = async (req, res) => {
       token = jwt.sign(payload, process.env.JWT_SECRET, {});
       const dbToken = await newSession(email, token, session);
       console.log("token guardado: " + dbToken);
-      
+
     }
 
     return res.status(200).json({
@@ -137,20 +140,13 @@ const loginUser = async (req, res) => {
 };
 
 const userData = async (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ error: "Error al iniciar sesion" });
-  }
+  const user = req.user;
 
   console.log("data del usuario");
-  
+  console.log(user);
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const { email } = decoded;
-
-    User.findOne({ email: email })
+    User.findOne({ email: user.email })
       .then((user) => {
         return res.status(200).json({ status: "ok", data: user });
       })
