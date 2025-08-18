@@ -36,7 +36,11 @@ const storageRestaurants = multer.diskStorage({
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e5);
     cb(
       null,
-      "restaurant-" + restaurantname + "-" + uniqueSuffix + path.extname(file.originalname)
+      "restaurant-" +
+        restaurantname +
+        "-" +
+        uniqueSuffix +
+        path.extname(file.originalname)
     );
   },
 });
@@ -46,24 +50,19 @@ const uploadRestaurant = multer({ storage: storageRestaurants });
 const uploadRestaurantImages = uploadRestaurant.fields([
   { name: "logo", maxCount: 1 }, //Logo
   { name: "mainImage", maxCount: 1 }, // imagen principal
-  { name: "images", maxCount: 5 },    // hasta 5 imágenes adicionales
+  { name: "images", maxCount: 5 }, // hasta 5 imágenes adicionales
 ]);
 
 // Registrar un nuevo restaurante
 const registerRestaurant = async (req, res) => {
-  const {
-    name,
-    description,
-    owner,
-    email,
-    countryCode,
-    number,
-    category,
-    image,
-    images,
-  } = req.body;
-  const mainImage = req.file ? req.file.path : null;
-  console.log("Registro restaurante: ", name);
+  const { name, description, owner, email, countryCode, number, category } =
+    req.body;
+
+  const logo = req.files.logo ? req.files.logo[0].path : null;
+  const mainImage = req.files.mainImage ? req.files.mainImage[0].path : null;
+  const images = req.files.images
+    ? req.files.images.map((file) => file.path)
+    : [];
 
   try {
     const id = createID(owner, name);
@@ -98,45 +97,18 @@ const registerRestaurant = async (req, res) => {
       await RestaurantDetails.create({
         id,
         name,
-        mainImage: image,
-        images: images,
-        workingDays: [
-          {
-            day: {
-              type: String,
-              enum: [
-                "Lunes",
-                "Martes",
-                "Miercoles",
-                "Jueves",
-                "Viernes",
-                "Sabado",
-                "Domingo",
-              ],
-              default: "Lunes",
-            },
-            open: String,
-            close: String,
-          },
-        ],
-        maxCapacity: { type: Number, default: 10 },
-        currentCapacity: { type: Number, default: 0 },
-        foods: [String],
-        state: {
-          type: String,
-          enum: ["available", "mid", "full", "saturated"],
-          default: "available",
-        },
-        status: {
-          type: String,
-          enum: ["active", "inactive", "closed"],
-          default: "active",
-        },
+        logo,
+        mainImage,
+        images,
+        workingDays: [],
+        maxCapacity: 10,
+        currentCapacity: 0,
+        foods: [],
+        state: "available",
+        status: "active",
       });
 
-      await RestaurantDesign.create({
-        restaurant: id,
-      });
+      await RestaurantDesign.create({ restaurant: id });
 
       res
         .status(201)
@@ -171,8 +143,45 @@ const getRestaurant = async (req, res) => {
 
 // Actualizar datos del restaurante
 const updateRestaurant = async (req, res) => {
-  const { id, name, description, owner, email, countryCode, number, category } =
-    req.body;
+  const {
+    id,
+    name,
+    description,
+    owner,
+    email,
+    countryCode,
+    number,
+    category,
+    workingDays,
+    maxCapacity,
+    currentCapacity,
+    foods,
+    state,
+    status,
+  } = req.body;
+
+  const {
+    backgroundType,
+    backgroundColor,
+    style,
+    divisions,
+    header,
+    headerText,
+    mainColor,
+    secondaryColor,
+    moreColors,
+    font,
+  } = req.body;
+
+  const logo = req.files.logo ? req.files.logo[0].path : null;
+  const mainImage = req.files.mainImage ? req.files.mainImage[0].path : null;
+  const images = req.files.images
+    ? req.files.images.map((file) => file.path)
+    : [];
+
+  const bgImage = req.files.backgroundImage
+    ? req.files.backgroundImage[0].path
+    : null;
 
   try {
     await Restaurant.updateOne(
@@ -191,6 +200,62 @@ const updateRestaurant = async (req, res) => {
           },
           category,
         },
+      }
+    );
+
+    // Parsear workingDays y foods si vienen como string JSON
+    let parsedWorkingDays = workingDays;
+    if (typeof workingDays === "string") {
+      try {
+        parsedWorkingDays = JSON.parse(workingDays);
+      } catch (err) {
+        console.warn("⚠️ workingDays no es JSON válido, se usa crudo");
+      }
+    }
+
+    let parsedFoods = foods;
+    if (typeof foods === "string") {
+      try {
+        parsedFoods = JSON.parse(foods);
+      } catch (err) {
+        parsedFoods = [foods]; // fallback
+      }
+    }
+
+    await RestaurantDetails.findOneAndUpdate(
+      {
+        id: id,
+      },
+      {
+        name,
+        logo,
+        mainImage,
+        images,
+        workingDays: parsedWorkingDays,
+        maxCapacity,
+        currentCapacity,
+        foods: parsedFoods,
+        state,
+        status,
+      }
+    );
+
+    await RestaurantDesign.findOneAndUpdate(
+      { restaurant: id },
+      {
+        background: {
+          typee: backgroundType,
+          color: backgroundColor,
+          image: bgImage,
+        },
+        style: style,
+        divisions: divisions,
+        header: header,
+        headerText: headerText,
+        mainColor: mainColor,
+        secondaryColor: secondaryColor,
+        moreColors: moreColors,
+        font: font,
       }
     );
 

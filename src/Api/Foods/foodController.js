@@ -27,14 +27,18 @@ const storageFoods = multer.diskStorage({
 
 const uploadFood = multer({ storage: storageFoods });
 
+const uploadFoodImages = uploadFood.fields([
+  { name: "images", maxCount: 10 }, // hasta 10 imágenes
+]);
+
 // Crear una nueva comida
 const createFood = async (req, res) => {
-    const { name, restaurant, description, price, category, imagesUrls } = req.body;
+    const { name, restaurantID, description, price, category } = req.body;
     const user = req.user
-    const images = req.files ? req.files.map(file => file.path) : [];
+    const images = req.files ? req.files.map((file) => file.path) : [];
 
     try {
-        const restaurant = await Restaurant.findOne({ id: restaurant, owner: user.email })
+        const restaurant = await Restaurant.findOne({ id: restaurantID, owner: user.email })
 
         if (!restaurant) {
             return res.status(404).json({
@@ -63,7 +67,7 @@ const createFood = async (req, res) => {
             price,
             sales: 0,
             category,
-            images: imagesUrls
+            images
         });
 
         res.status(201).json({
@@ -137,11 +141,12 @@ const getFood = async (req, res) => {
 
 // Actualizar un platillo
 const updateFood = async (req, res) => {
-    const { name, restaurant, description, price, category, image } = req.body;
+    const { name, restaurantID, description, price, category } = req.body;
     const user = req.user
+    const images = req.files.images ? req.files.images.map((file) => file.path) : [];
 
     try {
-        const restaurant = await Restaurant.findOne({ id: restaurant, owner: user.email })
+        const restaurant = await Restaurant.findOne({ id: restaurantID, owner: user.email })
 
         if (!restaurant) {
             return res.status(404).json({
@@ -150,7 +155,7 @@ const updateFood = async (req, res) => {
             });
         }
 
-        const food = await Food.findOne({ name: name, restaurant: restaurant });
+        const food = await Food.findOne({ name: name, restaurant: restaurantID });
 
         if (!food) {
             return res.status(404).json({
@@ -159,31 +164,17 @@ const updateFood = async (req, res) => {
             });
         }
 
-        // Verificar si el nuevo nombre ya existe en el restaurante (si se está cambiando)
-        if (name && name !== food.name) {
-            const existingFood = await Food.findOne({
-                name: name,
-                restaurant: restaurant,
-                _id: { $ne: food._id } // Excluir la comida actual
-            });
-
-            if (existingFood) {
-                return res.status(400).json({
-                    status: "error",
-                    data: "Ya existe un platillo con este nombre en el restaurante"
-                });
-            }
-        }
-
-        const updatedFood = await Food.updateOne({ name: name, restaurant: restaurant }, {
+        const updatedFood = await Food.updateOne({ name: name, restaurant: restaurantID }, {
             $set: {
                 name: name || food.name,
                 description: description || food.description,
                 price: price || food.price,
                 category: category || food.category,
-                image: image !== undefined ? image : food.image,
-            }
-        });
+                ...(images ? { images } : {}),
+                }
+            },
+            { new: true }
+        );
 
         res.status(200).json({
             status: "ok",

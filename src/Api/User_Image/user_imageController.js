@@ -28,16 +28,17 @@ const storageUsers = multer.diskStorage({
 const uploadUsers = multer({ storage: storageUsers });
 
 const updateUserImages = async (req, res) => {
-  const { user_name, bgimage } = req.body;
+  const { gmail } = req.body;
   const image = req.file ? req.file.path : null;
+  const bgImage = req.file ? req.file.path : null;
 
   try {
     const updatedUserImage = await User_Image.findOneAndUpdate(
-      { user_name: user_name },
+      { gmail: gmail },
       {
         $set: {
           image: image,
-          bgimage: bgimage,
+          bgimage: bgImage,
         },
       },
       { new: true }
@@ -54,10 +55,10 @@ const updateUserImages = async (req, res) => {
 };
 
 const userImage = async (req, res) => {
-  const { user_name } = req.body;
+  const user = req.user;
 
   try {
-    User_Image.findOne({ user_name: user_name })
+    User_Image.findOne({ gmail: user.gmail })
       .then((data) => {
         fs.access(data.image, fs.constants.F_OK, (err) => {
           if (err) {

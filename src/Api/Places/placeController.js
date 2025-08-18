@@ -23,11 +23,17 @@ const storagePlaces = multer.diskStorage({
 
 const uploadPlace = multer({ storage: storagePlaces });
 
+const uploadPlaceImages = uploadPlace.fields([
+  { name: "images", maxCount: 5 }, // hasta 5 imágenes
+]);
+
 // Crear lugar
 const createPlace = async (req, res) => {
   try {
-    const { restaurant, name, description, images } = req.body;
+    const { restaurant, name, description } = req.body;
     const id = createID();
+
+    const images = req.files.images ? req.files.images.map((file) => file.path) : [];
 
     const newPlace = new Place({
       id,
@@ -81,10 +87,12 @@ const getPlaceByCustomId = async (req, res) => {
 // Actualizar lugar
 const updatePlace = async (req, res) => {
   const { restaurant, id } = req.params;
+  const { name, description } = req.body;
+  const images = req.files.images ? req.files.images.map((file) => file.path) : [];
   try {
     const updated = await Place.findOneAndUpdate(
       { id, restaurant },
-      { $set: req.body },
+      { $set: { name, description, images } },
       { new: true, runValidators: true }
     );
 
