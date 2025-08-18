@@ -338,5 +338,6 @@ module.exports = {
     deleteFood,
     getFoodsByCategory,
     updateFoodSales,
-    searchFoods
+    searchFoods,
+    updateFood
 };

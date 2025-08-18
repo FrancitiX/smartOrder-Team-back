@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const userController = require("../src/api/Users/userController");
-const rolesController = require("../src/api/Role/RolesController");
+const userController = require("../src/Api/Users/userController");
+const rolesController = require("../src/Api/Role/RolesController");
 const restaurantController = require("../src/Api/Restaurant/restaurantController");
 const foodController = require("../src/Api/Foods/foodController");
 const orderController = require("../src/Api/Order/orderController");

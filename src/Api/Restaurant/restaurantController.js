@@ -11,8 +11,10 @@ app.use(express.json());
 
 require("./restaurantModel");
 require("./restaurantDetailsModel");
+require("./restaurantDesignModel");
 const Restaurant = mongoose.model("restaurant");
 const RestaurantDetails = mongoose.model("restaurant_details");
+const RestaurantDesign = mongoose.model("restaurant_design");
 
 function createID(owner, name) {
   const init = owner.toString().slice(0, 3);
@@ -130,6 +132,10 @@ const registerRestaurant = async (req, res) => {
           enum: ["active", "inactive", "closed"],
           default: "active",
         },
+      });
+
+      await RestaurantDesign.create({
+        restaurant: id,
       });
 
       res
