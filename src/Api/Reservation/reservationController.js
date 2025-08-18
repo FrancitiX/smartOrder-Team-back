@@ -1,10 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+app.use(express.json());
 require("dotenv").config();
-
-const app = express();
 
 app.use(express.json());
 

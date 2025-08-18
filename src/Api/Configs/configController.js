@@ -1,4 +1,8 @@
+const express = require("express");
 const mongoose = require("mongoose");
+const app = express();
+
+app.use(express.json());
 
 require("./configModel");
 const Configuration = mongoose.model("configuration");
@@ -80,9 +84,9 @@ const deleteConfig = async (req, res) => {
 
 module.exports = {
   createConfig,
-  getAllConfigs,
+  // getAllConfigs,
   getConfig,
-  getConfigByUser,
+  // getConfigByUser,
   updateConfig,
   deleteConfig,
 };

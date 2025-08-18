@@ -12,14 +12,13 @@ const foodController = require("../src/Api/Foods/foodController");
 router.post("/singIn", userController.registerUser);
 router.post("/login", userController.loginUser);
 
-
 //Solicitudes a la base de datos para imagenes de usuario
 
 router.put(
   "/:user/updateUser-Image",
-  uploadUsers.fields([
+  user_imageController.uploadUsers.fields([
     { name: "image", maxCount: 1 },
-    { name: "bgImage", maxCount: 1 }
+    { name: "bgImage", maxCount: 1 },
   ]),
   user_imageController.updateUserImages
 );
@@ -40,7 +39,10 @@ router.get("/restaurants", restaurantController.getAllRestaurants);
 //Solicitudes de alimentos
 router.get("/restaurants/:id/foods", foodController.getFoodsByRestaurant);
 router.get("/restaurants/:id/foods/:food", foodController.getFood);
-router.get("/restaurants/:id/foods/category/:category", foodController.getFoodsByCategory);
+router.get(
+  "/restaurants/:id/foods/category/:category",
+  foodController.getFoodsByCategory
+);
 router.get("/restaurants/:id/foods/search/:query", foodController.searchFoods);
 
 module.exports = router;

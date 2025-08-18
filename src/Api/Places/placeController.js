@@ -1,7 +1,13 @@
-const Mongoose = require("mongoose");
+const express = require("express");
+const mongoose = require("mongoose");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const app = express();
+app.use(express.json());
 
 require("./placeModel");
-const Place = Mongoose.model("place");
+const Place = mongoose.model("place");
 
 function createID(restaurant) {
   return "place_" + restaurant + "_" + new Date().getTime();
