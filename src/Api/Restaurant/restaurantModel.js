@@ -14,7 +14,7 @@ const restaurantModel = new Schema(
         number: String
       }
     },
-    category: Number,
+    category: [String],
     foods: [String],
     date: {
       date: String,

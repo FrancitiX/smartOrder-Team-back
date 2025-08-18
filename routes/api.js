@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const userController = require("../src/api/Users/userController");
-const user_imageController = require("../src/Api/User_Image/user_imageController");
+// const user_imageController = require("../src/Api/User_Image/user_imageController");
 const notificationController = require("../src/api/Notifications/NotificationController");
 const restaurantController = require("../src/Api/Restaurant/restaurantController");
 const foodController = require("../src/Api/Foods/foodController");

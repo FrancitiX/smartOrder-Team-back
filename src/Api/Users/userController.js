@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 
 require("./userModel");
-require("../User_Image/user_imageModel");
+require("./../User_Image/user_imageModel");
 const User = mongoose.model("user");
 const userImage = mongoose.model("userImage");
 const Roles = require("../../Enums/Enums");

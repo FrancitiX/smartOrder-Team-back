@@ -9,20 +9,23 @@ app.use(express.json());
 require("./user_imageModel");
 const User_Image = mongoose.model("userImage");
 
-const storage = multer.diskStorage({
+const storageUsers = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "Storage/Images"); // Carpeta donde se guardarán las imágenes
+    cb(null, "Storage/Images/users"); // Carpeta donde se guardarán las imágenes
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const name = req.body.user_name;
+    const safeName = name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "");
+
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e5);
     cb(
       null,
-      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+      file.fieldname + safeName + "-" + uniqueSuffix + path.extname(file.originalname)
     );
   },
 });
 
-const upload = multer({ storage: storage });
+const uploadUsers = multer({ storage: storageUsers });
 
 const updateUserImages = async (req, res) => {
   const { user_name, bgimage } = req.body;
@@ -77,6 +80,6 @@ const userImage = async (req, res) => {
 
 module.exports = {
   updateUserImages,
-  upload,
+  uploadUsers,
   userImage,
 };

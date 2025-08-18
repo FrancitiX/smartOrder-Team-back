@@ -1,6 +1,7 @@
+const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 
-require("./../Api/Tokens/TokenModel");
+// require("./../Api/Tokens/TokenModel");
 const Token = mongoose.model("token");
 
 module.exports = async (req, res, next) => {

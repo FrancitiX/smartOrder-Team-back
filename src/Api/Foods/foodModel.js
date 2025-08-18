@@ -9,10 +9,11 @@ const FoodModel = new Schema(
     price: Number,
     sales: Number,
     category: String,
-    image: String,
+    images: [String],
     date: { date: String, time: String }
   },
   {
+    timestamps: true,
     collection: "foods",
   }
 );

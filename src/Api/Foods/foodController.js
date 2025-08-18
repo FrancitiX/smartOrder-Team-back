@@ -11,10 +11,27 @@ require("../Restaurant/restaurantModel");
 const Food = mongoose.model("food");
 const Restaurant = mongoose.model("restaurant");
 
+const storageFoods = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "Storage/Images/foods");  
+  },
+  filename: (req, file, cb) => {
+    const foodname = req.body.name;
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e5);
+    cb(
+      null,
+      "food-" + foodname + "-" + uniqueSuffix + path.extname(file.originalname)
+    );
+  },
+});
+
+const uploadFood = multer({ storage: storageFoods });
+
 // Crear una nueva comida
 const createFood = async (req, res) => {
-    const { name, restaurant, description, price, category, image } = req.body;
+    const { name, restaurant, description, price, category, imagesUrls } = req.body;
     const user = req.user
+    const images = req.files ? req.files.map(file => file.path) : [];
 
     try {
         const restaurant = await Restaurant.findOne({ id: restaurant, owner: user.email })
@@ -46,7 +63,7 @@ const createFood = async (req, res) => {
             price,
             sales: 0,
             category,
-            image: image || "",
+            images: imagesUrls
         });
 
         res.status(201).json({
