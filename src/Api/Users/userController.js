@@ -112,9 +112,6 @@ const loginUser = async (req, res) => {
       role: user.role,
       favrestaurants: user.favrestaurants,
     };
-    // const token = jwt.sign(payload, process.env.JWT_SECRET, {
-    //   expiresIn: "1h",
-    // });
     if (!remember) {
       token = jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: "1h",
@@ -128,7 +125,11 @@ const loginUser = async (req, res) => {
 
     return res.status(200).json({
       status: "ok",
-      rol: user.rol,
+      user_name: user.name,
+      user_email: user.email,
+      user_cellphone: user.cellphone,
+      user_role: user.role,
+      user_favrestaurants: user.favrestaurants,
       token: token,
     });
   } catch (error) {

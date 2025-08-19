@@ -58,9 +58,9 @@ const registerRestaurant = async (req, res) => {
   const { name, description, owner, email, countryCode, number, category } =
     req.body;
 
-  const logo = req.files.logo ? req.files.logo[0].path : null;
-  const mainImage = req.files.mainImage ? req.files.mainImage[0].path : null;
-  const images = req.files.images
+  const logo = req.files?.logo ? req.files.logo[0].path : null;
+  const mainImage = req.files?.mainImage ? req.files.mainImage[0].path : null;
+  const images = req.files?.images
     ? req.files.images.map((file) => file.path)
     : [];
 
@@ -129,12 +129,15 @@ const getRestaurant = async (req, res) => {
 
   try {
     const restaurant = await Restaurant.findOne({ id: id });
+    const restaurantDetails = await RestaurantDetails.findOne({ id: id});
+    const restaurantDesign = await RestaurantDesign.findOne({ restaurant: id });
+
     if (!restaurant) {
       return res
         .status(404)
         .json({ status: "error", data: "Restaurante no encontrado" });
     }
-    res.status(200).json({ status: "ok", data: restaurant });
+    res.status(200).json({ status: "ok", data: restaurant, dataDetails: restaurantDetails, dataDesign: restaurantDesign });
   } catch (error) {
     console.error("Error: ", error);
     return res.send({ error: error });
@@ -403,4 +406,5 @@ module.exports = {
   deleteRestaurant,
   getRestaurantStats,
   getFavRestaurants,
+  uploadRestaurantImages
 };

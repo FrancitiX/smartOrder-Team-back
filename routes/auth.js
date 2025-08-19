@@ -28,8 +28,8 @@ router.get("/roles", authMiddleware, rolesController.getAllRoles);
 router.delete("/roles/:id", authMiddleware, rolesController.deleteRole);
 
 // Rutas para restaurantes
-router.post("/addRestaurant", authMiddleware, restaurantController.registerRestaurant);
-router.put("/updateRestaurant", authMiddleware, restaurantController.updateRestaurant);
+router.post("/addRestaurant", authMiddleware, restaurantController.uploadRestaurantImages, restaurantController.registerRestaurant);
+router.put("/updateRestaurant", authMiddleware, restaurantController.uploadRestaurantImages, restaurantController.updateRestaurant);
 router.delete("/deleteRestaurant/:restaurant", authMiddleware, restaurantController.deleteRestaurant);
 router.get("/:restaurant/stats", authMiddleware, restaurantController.getRestaurantStats);
 router.get("/favRestaurants", authMiddleware, restaurantController.getFavRestaurants);
