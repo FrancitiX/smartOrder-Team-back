@@ -8,6 +8,7 @@ const placesModel = new Schema(
     name: { type: String, required: true },
     description: { type: String, required: true },
     images: { type: [String], default: [] },
+    status: { type: String, enum: ["available", "reserved", "occupied"], default: "available" }
   },
   {
     timestamps: true,

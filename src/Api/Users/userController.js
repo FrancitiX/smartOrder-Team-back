@@ -33,7 +33,6 @@ const registerUser = async (req, res) => {
     const oldEmail = await User.findOne({ email: email });
 
     console.log("Contraseña registrada: " + pepper + password + salt);
-    
 
     if (oldEmail) {
       res.status(400).json({
@@ -74,12 +73,8 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password, remember } = req.body;
   const ip = req.connection.remoteAddress;
+  console.log("user login: " + email);
 
-  const os = require("os");
-  console.log(os.userInfo().username);
-
-  console.log("IP del cliente:", ip);
-  console.log("Login: " + email, password);
   try {
     const user = await User.findOne({
       email: email,
@@ -110,7 +105,13 @@ const loginUser = async (req, res) => {
 
     // Generar token JWT
     let token;
-    const payload = { email: user.email, username: user.name };
+    const payload = {
+      email: user.email,
+      name: user.name,
+      cellphone: user.cellphone,
+      role: user.role,
+      favrestaurants: user.favrestaurants,
+    };
     // const token = jwt.sign(payload, process.env.JWT_SECRET, {
     //   expiresIn: "1h",
     // });
@@ -123,7 +124,6 @@ const loginUser = async (req, res) => {
       token = jwt.sign(payload, process.env.JWT_SECRET, {});
       const dbToken = await newSession(email, token, session);
       console.log("token guardado: " + dbToken);
-
     }
 
     return res.status(200).json({
