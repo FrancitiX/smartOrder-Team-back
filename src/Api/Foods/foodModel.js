@@ -7,9 +7,9 @@ const FoodModel = new Schema(
     restaurant: String,
     description: String,
     price: Number,
-    sales: Number,
-    category: String,
+    category: [String],
     images: [String],
+    sales: { type: Number, default: 0 },
     date: { date: String, time: String }
   },
   {

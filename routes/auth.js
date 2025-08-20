@@ -29,14 +29,14 @@ router.delete("/roles/:id", authMiddleware, rolesController.deleteRole);
 
 // Rutas para restaurantes
 router.post("/addRestaurant", authMiddleware, restaurantController.uploadRestaurantImages, restaurantController.registerRestaurant);
-router.put("/updateRestaurant", authMiddleware, restaurantController.uploadRestaurantImages, restaurantController.updateRestaurant);
+router.put("/updateRestaurant", authMiddleware, restaurantController.uploadRestaurantImages, restaurantController.uploadRestaurantImages, restaurantController.updateRestaurant);
 router.delete("/deleteRestaurant/:restaurant", authMiddleware, restaurantController.deleteRestaurant);
 router.get("/:restaurant/stats", authMiddleware, restaurantController.getRestaurantStats);
 router.get("/favRestaurants", authMiddleware, restaurantController.getFavRestaurants);
 
 // Rutas para platillos
-router.post("/addFood", authMiddleware, foodController.createFood);
-router.put("/updateFood", authMiddleware, foodController.updateFood);
+router.post("/addFood", authMiddleware, foodController.uploadFoodImages, foodController.createFood);
+router.put("/updateFood", authMiddleware, foodController.uploadFoodImages, foodController.updateFood);
 router.put("/updateFoodSales", authMiddleware, foodController.updateFoodSales);
 router.delete("/deleteFood/:restaurant/:food", authMiddleware, foodController.deleteFood);
 router.get("/:restaurant/foods/search/:query", authMiddleware, foodController.searchFoods);

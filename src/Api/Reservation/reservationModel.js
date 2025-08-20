@@ -8,6 +8,13 @@ const reservationModel = new Schema(
     customer: { type: String, required: true },
     site: { type: String, required: true },
     people: { type: Number, required: true },
+    items: [
+      {
+        food: { type: String, required: true },
+        quantity: { type: Number, required: true },
+        price: { type: Number, required: true },
+      },
+    ],
     status: {
       type: String,
       enum: ["pending", "confirmed", "canceled", "completed"],
@@ -22,6 +29,7 @@ const reservationModel = new Schema(
       time: String,
     },
     price: { type: String },
+    totalPrice: { type: Number, required: true },
   },
   {
     timestamps: true,
