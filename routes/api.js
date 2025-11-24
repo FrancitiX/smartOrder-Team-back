@@ -9,7 +9,7 @@ const foodController = require("../src/Api/Foods/foodController");
 
 // Solicitudes de usuario
 
-router.post("/singIn", userController.registerUser);
+router.post("/signIn", userController.registerUser);
 router.post("/login", userController.loginUser);
 
 //Solicitudes a la base de datos para imagenes de usuario
