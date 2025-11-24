@@ -23,7 +23,7 @@ const {
 
 const registerUser = async (req, res) => {
   const { name, cellphone, password, email, role } = req.body;
-  console.log("Registro: ", name.name);
+  // console.log("Registro: ", name.name);
 
   try {
     const salt = await bcrypt.genSalt(12);
@@ -32,14 +32,14 @@ const registerUser = async (req, res) => {
     const enPassword = await bcrypt.hash(pepper + password + salt, 12);
     const oldEmail = await User.findOne({ email: email });
 
-    console.log("Contraseña registrada: " + pepper + password + salt);
+    // console.log("Contraseña registrada: " + pepper + password + salt);
 
     if (oldEmail) {
       res.status(400).json({
         status: "correo",
         data: "El correo ya está registrado!",
       });
-      console.log("El correo ya está registrado!");
+      // console.log("El correo ya está registrado!");
     } else {
       await User.create({
         name: {
@@ -60,7 +60,7 @@ const registerUser = async (req, res) => {
         bgimage: "",
       });
       res.status(201).json({ status: "ok", data: "Usuario creado" });
-      console.log("Usuario creado exitosamente");
+      // console.log("Usuario creado exitosamente");
     }
   } catch (error) {
     console.error("error: " + error);
@@ -73,7 +73,7 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password, remember } = req.body;
   const ip = req.connection.remoteAddress;
-  console.log("user login: " + email);
+  // console.log("user login: " + email);
 
   try {
     const user = await User.findOne({
@@ -95,7 +95,7 @@ const loginUser = async (req, res) => {
       user.password
     );
 
-    console.log("Contraseña login: " + fullPassword);
+    // console.log("Contraseña login: " + fullPassword);
 
     if (!isPasswordValid) {
       return res
@@ -120,7 +120,7 @@ const loginUser = async (req, res) => {
       const session = email + ip;
       token = jwt.sign(payload, process.env.JWT_SECRET, {});
       const dbToken = await newSession(email, token, session);
-      console.log("token guardado: " + dbToken);
+      // console.log("token guardado: " + dbToken);
     }
 
     return res.status(200).json({
@@ -143,8 +143,8 @@ const loginUser = async (req, res) => {
 const userData = async (req, res) => {
   const user = req.user;
 
-  console.log("data del usuario");
-  console.log(user);
+  // console.log("data del usuario");
+  // console.log(user);
 
   try {
     User.findOne({ email: user.email })
