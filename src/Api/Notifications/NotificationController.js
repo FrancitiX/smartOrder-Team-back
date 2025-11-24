@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const app = express();
 app.use(express.json());
 
-require("../Schemas/NotificationSchema");
+require("./NotificationSchema");
 const Notification = mongoose.model("notifications");
 
 const idNotification = (title, type) => {

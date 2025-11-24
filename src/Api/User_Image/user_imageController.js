@@ -6,35 +6,39 @@ const fs = require("fs");
 const app = express();
 app.use(express.json());
 
-require("./../Schemas/user_imageSchema");
-const User_Image = mongoose.model("user_image");
+require("./user_imageModel");
+const User_Image = mongoose.model("userImage");
 
-const storage = multer.diskStorage({
+const storageUsers = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Carpeta donde se guardarán las imágenes
+    cb(null, "Storage/Images/users"); // Carpeta donde se guardarán las imágenes
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const name = req.body.user_name;
+    const safeName = name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "");
+
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e5);
     cb(
       null,
-      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+      file.fieldname + safeName + "-" + uniqueSuffix + path.extname(file.originalname)
     );
   },
 });
 
-const upload = multer({ storage: storage });
+const uploadUsers = multer({ storage: storageUsers });
 
 const updateUserImages = async (req, res) => {
-  const { user_name, bgimage } = req.body;
+  const { gmail } = req.body;
   const image = req.file ? req.file.path : null;
+  const bgImage = req.file ? req.file.path : null;
 
   try {
     const updatedUserImage = await User_Image.findOneAndUpdate(
-      { user_name: user_name },
+      { gmail: gmail },
       {
         $set: {
           image: image,
-          bgimage: bgimage,
+          bgimage: bgImage,
         },
       },
       { new: true }
@@ -51,10 +55,10 @@ const updateUserImages = async (req, res) => {
 };
 
 const userImage = async (req, res) => {
-  const { user_name } = req.body;
+  const user = req.user;
 
   try {
-    User_Image.findOne({ user_name: user_name })
+    User_Image.findOne({ gmail: user.gmail })
       .then((data) => {
         fs.access(data.image, fs.constants.F_OK, (err) => {
           if (err) {
@@ -77,6 +81,6 @@ const userImage = async (req, res) => {
 
 module.exports = {
   updateUserImages,
-  upload,
+  uploadUsers,
   userImage,
 };

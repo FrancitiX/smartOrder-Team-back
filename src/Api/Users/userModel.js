@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const userSchema = new Schema(
+const UserModel = new Schema(
   {
     name: {
       type: {
@@ -10,22 +10,23 @@ const userSchema = new Schema(
         maternal_surname: String,
       },
     },
-    username: { type: String, unique: true },
     email: { type: String, unique: true },
-    cellphone: Number,
+    cellphone: {
+      countryCode: String,
+      number: String
+     },
     salt: String,
     password: String,
-    rol: String,
-    department: [ String ],
-    tower: [ String ],
-    date: { date: String, time: String },
+    role: Number,
+    favrestaurants: Array,
+    date: { date: String, time: String }
   },
   {
     collection: "users",
   }
 );
 
-userSchema.pre("save", function (next) {
+UserModel.pre("save", function (next) {
   const dateMexico = new Date().toLocaleString("es-MX", {
     timeZone: "America/Mexico_City",
   });
@@ -34,4 +35,4 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-mongoose.model("users", userSchema);
+mongoose.model("user", UserModel);

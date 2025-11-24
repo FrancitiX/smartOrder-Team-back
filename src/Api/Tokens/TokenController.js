@@ -4,19 +4,19 @@ const crypto = require("crypto");
 const app = express();
 app.use(express.json());
 
-require("../Schemas/TokenSchema");
+require("./TokenModel");
 const Token = mongoose.model("token");
 
 // Insertar multas
-const newSession = async (user, token, session) => {
+const newSession = async (email, token, session) => {
   try {
-    if (!user || !token) {
+    if (!email || !token) {
       console.log("Ocurrio un error al registrar la sesion");
       return false;
     }
 
     const newToken = await Token.create({
-      user,
+      email,
       token,
       session,
     });
@@ -49,10 +49,10 @@ const getSession = async (token, session) => {
 
 const closeSession = async (user, session) => {
   try {
-    const session = await Token.findOne({ user, session });
+    const foundSession = await Token.findOne({ user, session });
 
-    if (session) {
-      await Token.deleteOne({ session });
+    if (foundSession) {
+      await Token.deleteOne({ user, session });
       return true;
     }
 
@@ -69,7 +69,6 @@ const close_All_Sessions = async (user) => {
   try {
     if (user) {
       const close = await Token.deleteMany({ user: user });
-
       return close;
     }
 

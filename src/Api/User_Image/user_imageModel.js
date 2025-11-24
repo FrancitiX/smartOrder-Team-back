@@ -1,19 +1,20 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const departmentSchema = new Schema(
+const userImageModel = new Schema(
   {
-    number: Number,
-    name: String,
+    email: { type: String, unique: true },
+    image: String,
+    bgImage: { type: String, default: "0"},
     date: { date: String, time: String },
   },
   {
     timestamps: true,
-    collection: "departments",
+    collection: "userImage",
   }
 );
 
-departmentSchema.pre("save", function (next) {
+userImageModel.pre("save", function (next) {
   const dateMexico = new Date().toLocaleString("es-MX", {
     timeZone: "America/Mexico_City",
   });
@@ -22,4 +23,4 @@ departmentSchema.pre("save", function (next) {
   next();
 });
 
-mongoose.model("department", departmentSchema);
+mongoose.model("userImage", userImageModel);

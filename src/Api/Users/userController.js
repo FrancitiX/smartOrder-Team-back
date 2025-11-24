@@ -1,58 +1,38 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
-const app = express();
-app.use(express.json());
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
 require("dotenv").config();
 
-require("./../Schemas/userSchema");
-require("../Schemas/user_imageSchema");
-const User = mongoose.model("users");
-const userImage = mongoose.model("user_image");
+const app = express();
+
+app.use(express.json());
+
+require("./userModel");
+require("./../User_Image/user_imageModel");
+const User = mongoose.model("user");
+const userImage = mongoose.model("userImage");
+const Roles = require("../../Enums/Enums");
 
 const {
   newSession,
   getSession,
   closeSession,
   close_All_Sessions,
-} = require("./TokenController");
-
-const Salt = (username) => {
-  if (!username || username.length < 2) {
-    throw new Error("El nombre de usuario debe tener al menos 2 caracteres.");
-  }
-
-  const firstLetter = username[0].toLowerCase();
-  const lastLetter = username[username.length - 1].toLowerCase();
-
-  const randomPart = crypto.randomBytes(8).toString("hex");
-
-  return `${firstLetter}${lastLetter}${randomPart}`;
-};
-
-const usernameCreate = (name, number) => {
-  if (!name || name.length < 2) {
-    throw new Error("El nombre de usuario debe tener al menos 2 caracteres.");
-  }
-
-  const firstLetter = name[0].toUpperCase() + name[1].toUpperCase();
-  const lastLetter = name[name.length - 1].toUpperCase();
-
-  return `${firstLetter}${number}${lastLetter}`;
-};
+} = require("../Tokens/TokenController");
 
 const registerUser = async (req, res) => {
-  const { name, cellphone, pass, email, rol, department, tower } = req.body;
+  const { name, cellphone, password, email, role } = req.body;
   console.log("Registro: ", name.name);
 
   try {
-    const salt = Salt(name.name);
+    const salt = await bcrypt.genSalt(12);
     const pepper = process.env.PEPPER;
-    const enPassword = await bcrypt.hash(pepper + pass + salt, 12);
+    // const enPassword = await bcrypt.hash(pepper + password + salt, 12);
+    const enPassword = await bcrypt.hash(pepper + password + salt, 12);
     const oldEmail = await User.findOne({ email: email });
-    const user = usernameCreate(name.name, cellphone);
+
+    console.log("Contraseña registrada: " + pepper + password + salt);
 
     if (oldEmail) {
       res.status(400).json({
@@ -61,25 +41,21 @@ const registerUser = async (req, res) => {
       });
       console.log("El correo ya está registrado!");
     } else {
-      console.log(user);
-
       await User.create({
         name: {
           name: name.name,
           paternal_surname: name.paternal_surname,
           maternal_surname: name.maternal_surname,
         },
-        username: user,
         email,
         cellphone: cellphone,
         salt: salt,
         password: enPassword,
-        rol,
-        department,
-        tower,
+        role: role,
+        favrestaurants: [],
       });
       await userImage.create({
-        username: user,
+        email: email,
         image: "",
         bgimage: "",
       });
@@ -95,14 +71,13 @@ const registerUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-  const { number, password, remember } = req.body;
+  const { email, password, remember } = req.body;
   const ip = req.connection.remoteAddress;
-  console.log("IP del cliente:", ip);
-  console.log(remember);
-  console.log("Login: ", number);
+  console.log("user login: " + email);
+
   try {
     const user = await User.findOne({
-      cellphone: number,
+      email: email,
     });
 
     if (!user) {
@@ -112,11 +87,15 @@ const loginUser = async (req, res) => {
     }
     const { salt } = user;
     const pepper = process.env.PEPPER;
-    const passwordComplete = pepper + password + salt;
+    // const passwordComplete = pepper + password + salt;
+    const fullPassword = pepper + password + salt;
     const isPasswordValid = await bcrypt.compare(
-      passwordComplete,
+      // pepper + password + salt,
+      fullPassword,
       user.password
     );
+
+    console.log("Contraseña login: " + fullPassword);
 
     if (!isPasswordValid) {
       return res
@@ -125,22 +104,32 @@ const loginUser = async (req, res) => {
     }
 
     // Generar token JWT
-    const payload = { cellphone: user.cellphone, username: user.username };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    // if (!remember) {
-    //   const token = jwt.sign(payload, process.env.JWT_SECRET, {
-    //     expiresIn: "1h",
-    //   });
-    // } else {
-    //   const token = jwt.sign(payload, process.env.JWT_SECRET, {});
-    //   newSession(user.username, token, session);
-    // }
+    let token;
+    const payload = {
+      email: user.email,
+      name: user.name,
+      cellphone: user.cellphone,
+      role: user.role,
+      favrestaurants: user.favrestaurants,
+    };
+    if (!remember) {
+      token = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: "1h",
+      });
+    } else {
+      const session = email + ip;
+      token = jwt.sign(payload, process.env.JWT_SECRET, {});
+      const dbToken = await newSession(email, token, session);
+      console.log("token guardado: " + dbToken);
+    }
 
     return res.status(200).json({
       status: "ok",
-      rol: user.rol,
+      user_name: user.name,
+      user_email: user.email,
+      user_cellphone: user.cellphone,
+      user_role: user.role,
+      user_favrestaurants: user.favrestaurants,
       token: token,
     });
   } catch (error) {
@@ -152,17 +141,13 @@ const loginUser = async (req, res) => {
 };
 
 const userData = async (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  const user = req.user;
 
-  if (!token) {
-    return res.status(401).json({ error: "Error al iniciar sesion" });
-  }
+  console.log("data del usuario");
+  console.log(user);
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const { username } = decoded;
-
-    User.findOne({ username: username })
+    User.findOne({ email: user.email })
       .then((user) => {
         return res.status(200).json({ status: "ok", data: user });
       })

@@ -1,19 +1,24 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const gateSchema = new Schema(
+const FoodModel = new Schema(
   {
-    number: Number,
     name: String,
-    date: { date: String, time: String },
+    restaurant: String,
+    description: String,
+    price: Number,
+    category: [String],
+    images: [String],
+    sales: { type: Number, default: 0 },
+    date: { date: String, time: String }
   },
   {
     timestamps: true,
-    collection: "gates",
+    collection: "foods",
   }
 );
 
-gateSchema.pre("save", function (next) {
+FoodModel.pre("save", function (next) {
   const dateMexico = new Date().toLocaleString("es-MX", {
     timeZone: "America/Mexico_City",
   });
@@ -22,4 +27,4 @@ gateSchema.pre("save", function (next) {
   next();
 });
 
-mongoose.model("gate", gateSchema);
+mongoose.model("food", FoodModel);
