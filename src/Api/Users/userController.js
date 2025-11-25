@@ -217,6 +217,14 @@ const updateUser = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   let skip = parseInt(req.query.skip) || 0;
+  const user = req.user;
+
+  if (user.role >= 2) {
+    res
+      .status(410)
+      .send({ status: "error", data: "Sin acceso a usuarios", pages: 0 });
+    return;
+  }
 
   try {
     const data = await User.find({}).skip(parseInt(skip)).limit(parseInt(10));
@@ -253,5 +261,5 @@ module.exports = {
   userData,
   updateUser,
   getAllUsers,
-  deleteUser
+  deleteUser,
 };
