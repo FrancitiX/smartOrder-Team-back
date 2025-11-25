@@ -28,40 +28,135 @@ router.get("/roles", authMiddleware, rolesController.getAllRoles);
 router.delete("/roles/:id", authMiddleware, rolesController.deleteRole);
 
 // Rutas para restaurantes
-router.post("/addRestaurant", authMiddleware, restaurantController.uploadRestaurantImages, restaurantController.registerRestaurant);
-router.put("/updateRestaurant", authMiddleware, restaurantController.uploadRestaurantImages, restaurantController.uploadRestaurantImages, restaurantController.updateRestaurant);
-router.delete("/deleteRestaurant/:restaurant", authMiddleware, restaurantController.deleteRestaurant);
-router.get("/:restaurant/stats", authMiddleware, restaurantController.getRestaurantStats);
-router.get("/favRestaurants", authMiddleware, restaurantController.getFavRestaurants);
+router.post(
+  "/addRestaurant",
+  authMiddleware,
+  restaurantController.uploadRestaurantImages,
+  restaurantController.registerRestaurant
+);
+router.put(
+  "/updateRestaurant",
+  authMiddleware,
+  restaurantController.uploadRestaurantImages,
+  restaurantController.uploadRestaurantImages,
+  restaurantController.updateRestaurant
+);
+router.delete(
+  "/deleteRestaurant/:restaurant",
+  authMiddleware,
+  restaurantController.deleteRestaurant
+);
+router.get(
+  "/:restaurant/stats",
+  authMiddleware,
+  restaurantController.getRestaurantStats
+);
+router.get(
+  "/favRestaurants",
+  authMiddleware,
+  restaurantController.getFavRestaurants
+);
+router.post(
+  "/favRestaurants",
+  authMiddleware,
+  restaurantController.addFavRestaurant
+);
+router.post(
+  "/favRestaurants",
+  authMiddleware,
+  restaurantController.removeFavRestaurant
+);
 
 // Rutas para platillos
-router.post("/addFood", authMiddleware, foodController.uploadFoodImages, foodController.createFood);
-router.put("/updateFood", authMiddleware, foodController.uploadFoodImages, foodController.updateFood);
+router.post(
+  "/addFood",
+  authMiddleware,
+  foodController.uploadFoodImages,
+  foodController.createFood
+);
+router.put(
+  "/updateFood",
+  authMiddleware,
+  foodController.uploadFoodImages,
+  foodController.updateFood
+);
 router.put("/updateFoodSales", authMiddleware, foodController.updateFoodSales);
-router.delete("/deleteFood/:restaurant/:food", authMiddleware, foodController.deleteFood);
-router.get("/:restaurant/foods/search/:query", authMiddleware, foodController.searchFoods);
+router.delete(
+  "/deleteFood/:restaurant/:food",
+  authMiddleware,
+  foodController.deleteFood
+);
+router.get(
+  "/:restaurant/foods/search/:query",
+  authMiddleware,
+  foodController.searchFoods
+);
 
 // Rutas para ordenes
 router.post("/addOrder", authMiddleware, orderController.createOrder);
-router.get("/restaurant/:id/orders", authMiddleware, orderController.getOrdersByRestaurant);
-router.get("/customer/:gmail/orders", authMiddleware, orderController.getOrdersByCustomer);
+router.get(
+  "/restaurant/:id/orders",
+  authMiddleware,
+  orderController.getOrdersByRestaurant
+);
+router.get(
+  "/customer/:gmail/orders",
+  authMiddleware,
+  orderController.getOrdersByCustomer
+);
 router.get("/orders/:id", authMiddleware, orderController.getOrder);
-router.put("/updateOrder/:id", authMiddleware, orderController.updateOrderStatus);
-router.get("/restaurant/:id/pendingOrders", authMiddleware, orderController.getPendingOrders);
+router.put(
+  "/updateOrder/:id",
+  authMiddleware,
+  orderController.updateOrderStatus
+);
+router.get(
+  "/restaurant/:id/pendingOrders",
+  authMiddleware,
+  orderController.getPendingOrders
+);
 router.delete("/deleteOrder/:id", authMiddleware, orderController.deleteOrder);
 
 // Rutas para lugares
 router.post("/addPlace", authMiddleware, placeController.createPlace);
 router.get("/places/:restaurant", authMiddleware, placeController.getPlace);
-router.get("/places/:restaurant/:id", authMiddleware, placeController.getPlaceByCustomId);
-router.put("/places/:restaurant/:id", authMiddleware, placeController.updatePlace);
-router.delete("/places/:restaurant/:id", authMiddleware, placeController.deletePlace);
+router.get(
+  "/places/:restaurant/:id",
+  authMiddleware,
+  placeController.getPlaceByCustomId
+);
+router.put(
+  "/places/:restaurant/:id",
+  authMiddleware,
+  placeController.updatePlace
+);
+router.delete(
+  "/places/:restaurant/:id",
+  authMiddleware,
+  placeController.deletePlace
+);
 
 // Rutas para configuraciones
-router.post("/addConfiguration", authMiddleware, configurationsController.createConfig);
-router.get("/configurations/:id", authMiddleware, configurationsController.getConfig);
+router.post(
+  "/addConfiguration",
+  authMiddleware,
+  configurationsController.createConfig
+);
+router.get(
+  "/configurations/:id",
+  authMiddleware,
+  configurationsController.getConfig
+);
 // router.get("/configurations", authMiddleware, configurationsController.getAllConfigs);
-router.put("/configurations/:id", authMiddleware, configurationsController.updateConfig);
-router.delete("/configurations/:id", authMiddleware, configurationsController.deleteConfig);
+router.put(
+  "/configurations/:id",
+  authMiddleware,
+  configurationsController.updateConfig
+);
+router.delete(
+  "/configurations/:id",
+  authMiddleware,
+  configurationsController.deleteConfig
+);
 
 module.exports = router;

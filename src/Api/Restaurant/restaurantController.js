@@ -129,7 +129,7 @@ const getRestaurant = async (req, res) => {
 
   try {
     const restaurant = await Restaurant.findOne({ id: id });
-    const restaurantDetails = await RestaurantDetails.findOne({ id: id});
+    const restaurantDetails = await RestaurantDetails.findOne({ id: id });
     const restaurantDesign = await RestaurantDesign.findOne({ restaurant: id });
 
     if (!restaurant) {
@@ -137,7 +137,14 @@ const getRestaurant = async (req, res) => {
         .status(404)
         .json({ status: "error", data: "Restaurante no encontrado" });
     }
-    res.status(200).json({ status: "ok", data: restaurant, dataDetails: restaurantDetails, dataDesign: restaurantDesign });
+    res
+      .status(200)
+      .json({
+        status: "ok",
+        data: restaurant,
+        dataDetails: restaurantDetails,
+        dataDesign: restaurantDesign,
+      });
   } catch (error) {
     console.error("Error: ", error);
     return res.send({ error: error });
@@ -383,7 +390,7 @@ const getRestaurantStats = async (req, res) => {
 const getFavRestaurants = async (req, res) => {
   const user = req.user;
 
-  console.log("favoritos")
+  console.log("favoritos");
   try {
     const restaurants = await Promise.all(
       user.favrestaurants.map(async (restaurantId) => {
@@ -398,6 +405,78 @@ const getFavRestaurants = async (req, res) => {
   }
 };
 
+// Añadir restaurante favorito
+const addFavRestaurant = async (req, res) => {
+  const user = req.user;
+  const { restaurantID } = req.body;
+
+  if (!restaurantID) {
+    return res.status(400).json({ error: "restaurantID requerido" });
+  }
+
+  try {
+    // Obtener usuario con campo favrestaurants
+    const userData = await User.findOne(
+      { username: user.username },
+      { favrestaurants: 1 }
+    );
+
+    if (!userData) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    // Evitar duplicados
+    if (!userData.favrestaurants.includes(restaurantID)) {
+      userData.favrestaurants.push(restaurantID);
+    }
+
+    await userData.save();
+
+    res.status(200).json({
+      status: "ok",
+      favorites: userData.favrestaurants,
+    });
+  } catch (error) {
+    console.error("Error al obtener restaurantes favoritos:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+const removeFavRestaurant = async (req, res) => {
+  const user = req.user;
+  const { restaurantID } = req.body;
+
+  if (!restaurantID) {
+    return res.status(400).json({ error: "restaurantID requerido" });
+  }
+
+  try {
+    const userData = await User.findOne(
+      { username: user.username },
+      { favrestaurants: 1 }
+    );
+
+    if (!userData) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    // Filtrar el ID
+    userData.favrestaurants = userData.favrestaurants.filter(
+      (id) => id != restaurantID
+    );
+
+    await userData.save();
+
+    res.status(200).json({
+      status: "ok",
+      favorites: userData.favrestaurants,
+    });
+  } catch (error) {
+    console.error("Error al eliminar favorito:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
 module.exports = {
   registerRestaurant,
   getRestaurant,
@@ -407,5 +486,7 @@ module.exports = {
   deleteRestaurant,
   getRestaurantStats,
   getFavRestaurants,
-  uploadRestaurantImages
+  uploadRestaurantImages,
+  addFavRestaurant,
+  removeFavRestaurant,
 };

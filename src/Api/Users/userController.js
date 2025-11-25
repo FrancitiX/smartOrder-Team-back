@@ -253,5 +253,5 @@ module.exports = {
   userData,
   updateUser,
   getAllUsers,
-  deleteUser,
+  deleteUser
 };
