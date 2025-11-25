@@ -383,6 +383,7 @@ const getRestaurantStats = async (req, res) => {
 const getFavRestaurants = async (req, res) => {
   const user = req.user;
 
+  console.log("favoritos")
   try {
     const restaurants = await Promise.all(
       user.favrestaurants.map(async (restaurantId) => {
