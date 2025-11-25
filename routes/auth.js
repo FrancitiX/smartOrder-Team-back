@@ -47,6 +47,11 @@ router.delete(
   restaurantController.deleteRestaurant
 );
 router.get(
+  "/myRestaurant",
+  authMiddleware,
+  restaurantController.getMyRestaurants
+);
+router.get(
   "/:restaurant/stats",
   authMiddleware,
   restaurantController.getRestaurantStats

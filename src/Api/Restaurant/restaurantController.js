@@ -54,74 +54,74 @@ const uploadRestaurantImages = uploadRestaurant.fields([
 ]);
 
 // Registrar un nuevo restaurante
-const registerRestaurant = async (req, res) => {
-  const { name, description, owner, email, countryCode, number, category } =
-    req.body;
+  const registerRestaurant = async (req, res) => {
+    const { name, description, owner, email, countryCode, number, category } =
+      req.body;
 
-  const logo = req.files?.logo ? req.files.logo[0].path : null;
-  const mainImage = req.files?.mainImage ? req.files.mainImage[0].path : null;
-  const images = req.files?.images
-    ? req.files.images.map((file) => file.path)
-    : [];
+    const logo = req.files?.logo ? req.files.logo[0].path : null;
+    const mainImage = req.files?.mainImage ? req.files.mainImage[0].path : null;
+    const images = req.files?.images
+      ? req.files.images.map((file) => file.path)
+      : [];
 
-  try {
-    const id = createID(owner, name);
+    try {
+      const id = createID(owner, name);
 
-    // Verificar si ya existe un restaurante con el mismo email
-    const existingRestaurant = await Restaurant.findOne({
-      id: id,
-    });
-
-    if (existingRestaurant) {
-      res.status(400).json({
-        status: "error",
-        data: "Ya existe un restaurante así! contacte a soporte por favor",
+      // Verificar si ya existe un restaurante con el mismo email
+      const existingRestaurant = await Restaurant.findOne({
+        id: id,
       });
-    } else {
-      await Restaurant.create({
-        id,
-        name,
-        description,
-        owner,
-        contact: {
-          email,
-          phone: {
-            countryCode,
-            number,
+
+      if (existingRestaurant) {
+        res.status(400).json({
+          status: "error",
+          data: "Ya existe un restaurante así! contacte a soporte por favor",
+        });
+      } else {
+        await Restaurant.create({
+          id,
+          name,
+          description,
+          owner,
+          contact: {
+            email,
+            phone: {
+              countryCode,
+              number,
+            },
           },
-        },
-        category,
-        foods: [],
-      });
+          category,
+          foods: [],
+        });
 
-      await RestaurantDetails.create({
-        id,
-        name,
-        logo,
-        mainImage,
-        images,
-        workingDays: [],
-        maxCapacity: 10,
-        currentCapacity: 0,
-        foods: [],
-        state: "available",
-        status: "active",
-      });
+        await RestaurantDetails.create({
+          id,
+          name,
+          logo,
+          mainImage,
+          images,
+          workingDays: [],
+          maxCapacity: 10,
+          currentCapacity: 0,
+          foods: [],
+          state: "available",
+          status: "active",
+        });
 
-      await RestaurantDesign.create({ restaurant: id });
+        await RestaurantDesign.create({ restaurant: id });
 
+        res
+          .status(201)
+          .json({ status: "ok", data: "Restaurante creado exitosamente" });
+        console.log("Restaurante creado exitosamente");
+      }
+    } catch (error) {
+      console.error("error: " + error);
       res
-        .status(201)
-        .json({ status: "ok", data: "Restaurante creado exitosamente" });
-      console.log("Restaurante creado exitosamente");
+        .status(500)
+        .json({ status: "error", data: "Error interno del servidor" });
     }
-  } catch (error) {
-    console.error("error: " + error);
-    res
-      .status(500)
-      .json({ status: "error", data: "Error interno del servidor" });
-  }
-};
+  };
 
 // Obtener datos del restaurante
 const getRestaurant = async (req, res) => {
@@ -287,6 +287,32 @@ const getAllRestaurants = async (req, res) => {
     const data = await Restaurant.find().skip(skip).limit(limit);
 
     const totalDocs = await Restaurant.countDocuments();
+    const pages = {
+      docs: data.length,
+      totalDocs: totalDocs,
+      totalPages: Math.ceil(totalDocs / limit),
+      currentPage: Math.floor(skip / limit) + 1,
+    };
+
+    res.status(200).send({ status: "ok", data: data, pages: pages });
+  } catch (error) {
+    console.error("Error al obtener restaurantes:", error);
+    return res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+// Obtener mis restaurantes (con paginación)
+const getMyRestaurants = async (req, res) => {
+  const user = req.user;
+  let skip = parseInt(req.query.skip) || 0;
+  let limit = parseInt(req.query.limit) || 10;
+
+  const filter = { owner: user.email };
+
+  try {
+    const data = await Restaurant.find(filter).skip(skip).limit(limit);
+
+    const totalDocs = await Restaurant.countDocuments(filter);
     const pages = {
       docs: data.length,
       totalDocs: totalDocs,
@@ -480,6 +506,7 @@ const removeFavRestaurant = async (req, res) => {
 module.exports = {
   registerRestaurant,
   getRestaurant,
+  getMyRestaurants,
   updateRestaurant,
   getAllRestaurants,
   searchRestaurants,
